@@ -30,20 +30,22 @@ const UserProfileModal = ({ nameDetails = true }) => {
   useEffect(() => {
     const fetchFriendDetails = async () => {
       try {
-        const details = await Promise.all(
-          currentUser.friends.map(async (friendId) => {
-            const user = await getUserById(friendId);
-            const result = user.friends.includes(currentUser?.$id);
-            setIsFriends(result);
-            return user; // Return user details for each friend
-          })
-        );
+        const details = [];
+        let areFriends = false;
+        for (const friendId of currentUser?.friends || []) {
+          const user = await getUserById(friendId);
+          details.push(user);
+          // Check if the current user is friends with this user
+          if (user?.friends.includes(currentUser?.$id)) {
+            areFriends = true;
+          }
+        }
+        setIsFriends(areFriends);
         setFriendDetails(details);
       } catch (error) {
         console.error('Error fetching friend details:', error);
       }
     };
-
     fetchFriendDetails();
   }, [currentUser?.friends, currentUser?.$id]);
 
@@ -115,8 +117,8 @@ const UserProfileModal = ({ nameDetails = true }) => {
                       <p className="small-regular md:body-medium text-light-3 text-left">
                         @{currentUser.username}
                       </p>
-                      <p className='text-xs font-thin'>
-                        Joined - <span className='text-small font-semibold'>{formatTimestamp(currentUser.$createdAt)}</span>
+                      <p className='text-xs xl:text-sm mt-4 font-thin'>
+                        Joined - <span className='font-semibold'>{formatTimestamp(currentUser.$createdAt)}</span>
                       </p>
                       <div className='flex gap-4'>
                         <p onClick={() => setToggleDetails(true)} className={`text-light-3 ${toggleDetails ? 'underline underline-offset-3' : ''} hover:underline cursor-pointer`}>
@@ -135,14 +137,12 @@ const UserProfileModal = ({ nameDetails = true }) => {
                     </div>
                   </div>
                   <hr className='border w-full border-dark-4/80' />
-                  {currentUser.bio ? (
-                    <div className='px-4 my-8 text-light-2'>
-                      <p className='text-2xl font-bold'>Bio</p>
-                      <p>
-                        {currentUser.bio}
-                      </p>
-                    </div>
-                  ) : ''}
+                  <div className='my-8 text-light-2'>
+                    <p className='text-2xl font-bold'>Bio</p>
+                    <p className='text-light-3'>
+                      {user.bio || 'Let users know more about you'}
+                    </p>
+                  </div>
                 </div>
               )}
               {!edit ? (

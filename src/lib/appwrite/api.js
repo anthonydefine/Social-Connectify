@@ -136,6 +136,30 @@ export async function createPost(post) {
   }
 }
 
+export async function updatePost(updatedPostData) {
+  try {
+    // Extract updated post data
+    const { postId, caption, tags } = updatedPostData;
+    // Convert tags into array
+    const tagsArray = tags.replace(/ /g, "").split(",") || [];
+    // Update post
+    const updatedPost = await databases.updateDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.postCollectionId,
+      postId,
+      {
+        caption: caption,
+        tags: tagsArray,
+      }
+    );
+    return updatedPost;
+  } catch (error) {
+    console.error('Error updating post:', error);
+    throw error; // Throw the error for further handling, if needed
+  }
+};
+
+
 // ============================== UPLOAD FILE
 export async function uploadFile(file) {
   try {
@@ -254,17 +278,22 @@ export async function getPostById(postId) {
 }
 
 export async function deletePost(postId, imageId) {
-  if(!postId || !imageId) throw Error;
+  if (!postId || !imageId) return;
 
   try {
-    await databases.deleteDocument(
+    const statusCode = await databases.deleteDocument(
       appwriteConfig.databaseId,
       appwriteConfig.postCollectionId,
       postId
-    )
-    return { status: 'ok' };
+    );
+
+    if (!statusCode) throw Error;
+
+    await deleteFile(imageId);
+
+    return { status: "Ok" };
   } catch (error) {
-    console.log(error)
+    console.log(error);
   }
 }
 
@@ -367,6 +396,55 @@ export async function followFriend(userId, targetId) {
   }
 }
 
+export async function removeFriend(userId, targetId) {
+  try {
+    // Fetch current user data
+    const currentUserResponse = await databases.getDocument(appwriteConfig.databaseId, appwriteConfig.userCollectionId, userId);
+    const currentUser = currentUserResponse;
+    // Fetch target user data
+    const targetUserResponse = await databases.getDocument(appwriteConfig.databaseId, appwriteConfig.userCollectionId, targetId);
+    const targetUser = targetUserResponse;
+    // Check if both users exist in the database
+    if (!currentUser || !targetUser) {
+      throw new Error('Invalid user data');
+    }
+    // Get current user's friends list
+    const currentUserFriends = currentUser.friends || [];
+    // Get target user's friends list
+    const targetUserFriends = targetUser.friends || [];
+    // Check if the users are friends
+    const currentUserIndex = currentUserFriends.indexOf(targetId);
+    const targetUserIndex = targetUserFriends.indexOf(userId);
+    if (currentUserIndex === -1 || targetUserIndex === -1) {
+      throw new Error('Users are not friends');
+    }
+    // Remove friend from the users' friends list
+    currentUserFriends.splice(currentUserIndex, 1);
+    targetUserFriends.splice(targetUserIndex, 1);
+    // Update the current user document with the updated friends list
+    await databases.updateDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.userCollectionId,
+      userId,
+      {
+        friends: currentUserFriends,
+      }
+    );
+    // Update the target user document with the updated friends list
+    await databases.updateDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.userCollectionId,
+      targetId,
+      {
+        friends: targetUserFriends,
+      }
+    );
+    console.log('Friend removed successfully.');
+  } catch (error) {
+    console.error('Error removing friend:', error);
+    throw error;
+  }
+}
 
 // ============================== Update Activity
 export async function updateUser(user) {

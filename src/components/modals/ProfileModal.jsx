@@ -7,7 +7,7 @@ import GridPostList from '../shared/GridPostList';
 import { useGetUserById } from '../../lib/react-query/queriesAndmutations';
 import Loader from '../shared/Loader';
 import { useUserContext } from '../../context/AuthContext';
-import { followFriend, getUserById } from '../../lib/appwrite/api';
+import { followFriend, getUserById, removeFriend } from '../../lib/appwrite/api';
 
 
 const ProfileModal = ({ post, friend }) => {
@@ -19,13 +19,6 @@ const ProfileModal = ({ post, friend }) => {
 
   const { user } = useUserContext();
 
-  const items = [
-    {
-      key: '1',
-      label: 'Posts',
-    }
-  ]
-
   const userIdToDisplay = friend ? friend?.$id : post?.creator?.$id;
   const { data: currentUser } = useGetUserById(userIdToDisplay);
 
@@ -33,9 +26,9 @@ const ProfileModal = ({ post, friend }) => {
     const fetchFriendDetails = async () => {
       try {
         const details = await Promise.all(
-          currentUser.friends.map(async (friendId) => {
+          currentUser?.friends?.map(async (friendId) => {
             const user = await getUserById(friendId);
-            const result = user.friends.includes(currentUser?.$id);
+            const result = user?.friends.includes(currentUser?.$id);
             setIsFriends(result);
             return user; // Return user details for each friend
           })
@@ -55,6 +48,22 @@ const ProfileModal = ({ post, friend }) => {
       content: `You are already friends with ${currentUser.name}!`
     });
   };
+
+  const handleRemoveFriend = async () => {
+    try {
+      await removeFriend(user?.id, currentUser?.$id);
+      messageApi.open({
+        type: 'success',
+        content: `You have removed ${currentUser.name} as a friend!`
+      });
+    } catch (error) {
+      messageApi.open({
+        type: 'error',
+        content: `There was a problem removing ${currentUser.name} as a friend!`
+      });
+      console.error('Error sending friend request:', error);
+    }
+  }
 
     const handleFriendRequest = async () => {
       try {
@@ -94,9 +103,15 @@ const ProfileModal = ({ post, friend }) => {
             Add Friend
           </Button>
         ) : (
-          <Button icon={<CheckOutlined />} className='shad-button_primary' onClick={alreadyFriends}>
-            Friends
-          </Button>
+          <>
+            <Button icon={<CheckOutlined />} className='shad-button_primary' onClick={alreadyFriends}>
+              Friends
+            </Button>
+            <Button danger type='text' className='remove-friend-btn' onClick={handleRemoveFriend}>
+              Remove Friend
+            </Button>
+          </>
+          
         )}
       >
         <div className=''>
@@ -110,8 +125,8 @@ const ProfileModal = ({ post, friend }) => {
                 <p className="small-regular md:body-medium text-light-3 text-left">
                   @{currentUser?.username}
                 </p>
-                <p className='text-xs font-thin'>
-                  Joined - <span className='text-base font-semibold'>{formatTimestamp(currentUser?.$createdAt)}</span>
+                <p className='text-xs xl:text-sm mt-4 font-thin'>
+                  Joined - <span className='font-semibold'>{formatTimestamp(currentUser?.$createdAt)}</span>
                 </p>
                 <div className='flex gap-4'>
                   <p onClick={() => setToggleDetails(true)} className={`text-light-3 ${toggleDetails ? 'underline underline-offset-3' : ''} hover:underline cursor-pointer`}>
@@ -129,24 +144,14 @@ const ProfileModal = ({ post, friend }) => {
                 </div>
               </div>
             </div>
-            {user?.id === currentUser?.$id ? (
-              <Button 
-              icon={<EditOutlined />}
-              className='shad-button_primary'
-            >
-              Edit
-            </Button>
-            ) : ''}
           </div>
           <hr className='border w-full border-dark-4/80' />
-          {currentUser?.bio ? (
-            <div className='my-8 text-light-2'>
-              <p className='text-2xl font-bold'>Bio</p>
-              <p>
-                {currentUser?.bio}
-              </p>
-            </div>
-            ) : ''}
+          <div className='my-8 text-light-2'>
+            <p className='text-2xl font-bold'>Bio</p>
+            <p className='text-light-3'>
+              {currentUser.bio || 'User has no bio yet'}
+            </p>
+          </div>
           <div className='px-4'>
             {toggleDetails ? (
               <>

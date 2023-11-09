@@ -1,11 +1,11 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import profilePlaceholder from '../../../public/assets/icons/profile-placeholder.svg';
-import { MoreOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
 import { useUserContext } from '../../context/AuthContext';
 import PostStats from './PostStats';
 import { formatTimestamp } from '../../constants';
-import { Button, Dropdown, Tag } from 'antd';
+import { Button, Tag, Tooltip } from 'antd';
 import { useDeletePost, useGetUserById } from '../../lib/react-query/queriesAndmutations';
 import ProfileModal from '../modals/ProfileModal';
 import UserProfileModal from '../modals/UserProfileModal';
@@ -18,23 +18,11 @@ const PostCard = ({ post }) => {
   const { mutate: deletePost } = useDeletePost();
 
   const handleDeletePost = () => {
-    deletePost({ postId: post?.id, imageId: post?.imageId })
+    deletePost({ postId: post?.$id, imageId: post?.imageId })
   };
 
-  const items = [
-    {
-      key: 1,
-      label: (
-        <Button type='ghost' icon={<DeleteOutlined />} onClick={handleDeletePost}>Delete post</Button>
-      ),
-    },
-    {
-      key: 2,
-      label: (
-        <Button type='ghost' icon={<EditOutlined />}>Update post</Button>
-      ),
-    },
-  ];
+  const editText = <span>Edit post</span>
+  const deleteText = <span>Delete post</span>
 
   return (
     <div className='post-card p-6'>
@@ -60,15 +48,18 @@ const PostCard = ({ post }) => {
             </div>
           </div>
         </div>
-        <span>
-          <Dropdown
-          menu={{items,}}
-          placement='bottom'
-          className={`${user?.id !== post?.creator?.$id && 'hidden'}`}
-          >
-            <MoreOutlined type='ghost' className='cursor-pointer' />
-          </Dropdown>
-        </span>
+        {user.id === post?.creator.$id ? (
+          <span className='flex gap-3'>
+            <Tooltip placement='bottom' title={editText}>
+              <Button type='link' icon={<EditOutlined />}></Button>
+            </Tooltip>
+            <Tooltip placement='bottom' title={deleteText}>
+              <Button danger type='link' icon={<DeleteOutlined />} onClick={handleDeletePost}></Button>
+            </Tooltip>
+          </span>
+        ) : (
+          ''
+        )}
       </div>
       <Link to={`/posts/${post?.$id}`}>
         <div className='small-medium lg:base-medium py-5'>

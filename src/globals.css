@@ -22,6 +22,9 @@
 .ant-modal-close:hover svg {
   color: #7878a3 !important;
 }
+.remove-friend-btn:hover {
+  background-color: #1d1d20!important;
+}
 
 @layer base {
   * {

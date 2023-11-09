@@ -23,20 +23,24 @@ const Home = () => {
   useEffect(() => {
     const fetchFriendDetails = async () => {
       try {
-        const details = await Promise.all(
-          currentUser.friends.map(async (friendId) => {
-            const user = await getUserById(friendId); // Fetch user details based on friendId
-            return user; // Return user details for each friend
-          })
-        );
+        const details = [];
+        let areFriends = false;
+        for (const friendId of currentUser?.friends || []) {
+          const user = await getUserById(friendId);
+          details.push(user);
+          // Check if the current user is friends with this user
+          if (user?.friends.includes(currentUser?.$id)) {
+            areFriends = true;
+          }
+        }
+        setIsFriends(areFriends);
         setFriendDetails(details);
       } catch (error) {
         console.error('Error fetching friend details:', error);
       }
     };
-
     fetchFriendDetails();
-  }, [currentUser?.friends]);
+  }, [currentUser?.friends, currentUser?.$id]);
 
   return (
     <div className='flex flex-1'>
