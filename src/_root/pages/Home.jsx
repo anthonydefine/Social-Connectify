@@ -24,7 +24,6 @@ const Home = () => {
     const fetchFriendDetails = async () => {
       try {
         const details = [];
-        let areFriends = false;
         for (const friendId of currentUser?.friends || []) {
           const user = await getUserById(friendId);
           details.push(user);
@@ -33,7 +32,6 @@ const Home = () => {
             areFriends = true;
           }
         }
-        setIsFriends(areFriends);
         setFriendDetails(details);
       } catch (error) {
         console.error('Error fetching friend details:', error);
