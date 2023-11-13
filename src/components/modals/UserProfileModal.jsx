@@ -19,7 +19,6 @@ const UserProfileModal = ({ nameDetails = true }) => {
   const [friendDetails, setFriendDetails] = useState([]);
   const [isFriends, setIsFriends] = useState(false);
   const navigate = useNavigate();
-  
 
   const { user } = useUserContext();
 
@@ -140,7 +139,7 @@ const UserProfileModal = ({ nameDetails = true }) => {
                   <div className='my-8 text-light-2'>
                     <p className='text-2xl font-bold'>Bio</p>
                     <p className='text-light-3'>
-                      {user.bio || 'Let users know more about you'}
+                      {user?.bio || 'Let users know more about you'}
                     </p>
                   </div>
                 </div>

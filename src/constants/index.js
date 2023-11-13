@@ -71,6 +71,6 @@ export function formatTimestamp(timestamp) {
   }
 };
 
-export const checkIsLiked = (likeList, userId) => {
-  return likeList?.includes(userId);
+export const checkIsLiked = (likesArray, userId) => {
+  return likesArray?.includes(userId);
 };

@@ -4,12 +4,12 @@ import liked from '../../../public/assets/icons/liked.svg';
 import save from '../../../public/assets/icons/save.svg';
 import saved from '../../../public/assets/icons/saved.svg';
 import { useDeleteSavedPost, useGetCurrentUser, useLikePost, useSavePost } from '../../lib/react-query/queriesAndmutations';
-import { checkIsLiked } from '../../constants';
 import Loader from './Loader';
 import { message } from 'antd';
+import { checkIsLiked } from '../../constants';
 
 const PostStats = ({ post, userId }) => {
-  const likesList = post?.likes?.map((user) => user?.$id)
+  const likesList = Array.isArray(post?.likes) ? post.likes.map((user) => user?.$id) : [];
 
   const [likes, setLikes] = useState(likesList);
   const [isSaved, setIsSaved] = useState(false);
@@ -29,18 +29,14 @@ const PostStats = ({ post, userId }) => {
 
   const handleLikePost = (e) => {
     e.stopPropagation();
-    let newLikes = [...likes];
-
-    const hasLiked = newLikes.includes(userId)
-
-    if(hasLiked) {
-      newLikes = newLikes.filter((id) => id !== userId)
+    let likesArray = [...likes];
+    if (likesArray.includes(userId)) {
+      likesArray = likesArray.filter((Id) => Id !== userId);
     } else {
-      newLikes.push(userId)
+      likesArray.push(userId);
     }
-
-    setLikes(newLikes);
-    likePost({ postId: post.$id || '', newLikes })
+    setLikes(likesArray);
+    likePost({ postId: post.$id, likesArray });
     messageApi.open({
       type: 'success',
       content: `You have liked ${post.creator.name}'s post`

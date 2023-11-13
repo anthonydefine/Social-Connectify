@@ -25,6 +25,21 @@
 .remove-friend-btn:hover {
   background-color: #1d1d20!important;
 }
+.ant-switch {
+  @apply bg-primary-500 hover:bg-primary-600 !important
+}
+.ant-switch-checked {
+  @apply bg-primary-500 !important
+}
+.carousel-item {
+  @apply flex justify-between items-center gap-2 py-4 w-full box-border !important;
+}
+.carousel-antd {
+  @apply max-w-screen-sm w-full !important ;
+}
+#followCreators {
+  @apply hidden lg:block
+}
 
 @layer base {
   * {
@@ -250,7 +265,7 @@
 
   /* Post Card */
   .post-card {
-    @apply bg-dark-2 rounded-3xl border border-dark-4 xl:p-7 w-full max-w-screen-sm;
+    @apply bg-dark-2 rounded-3xl border border-dark-4 xl:p-7 w-full max-w-screen-sm !important;
   }
 
   .post-card_img {

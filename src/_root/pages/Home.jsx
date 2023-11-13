@@ -6,7 +6,7 @@ import { useUserContext } from '../../context/AuthContext';
 import { formatTimestamp } from '../../constants';
 import portfolio from '../../../public/assets/images/portfolio.png';
 import { GithubOutlined, LinkedinOutlined, MailOutlined, RocketOutlined } from '@ant-design/icons';
-import { Tag } from 'antd';
+import { Tag, Switch } from 'antd';
 import UserProfileModal from '../../components/modals/UserProfileModal';
 import creatorheadshot from '../../../public/assets/images/headshot.jpeg';
 import { getUserById } from '../../lib/appwrite/api';
@@ -14,6 +14,7 @@ import ProfileModal from '../../components/modals/ProfileModal';
 
 const Home = () => {
   const [friendDetails, setFriendDetails] = useState([]);
+  const [isChecked, setIsChecked] = useState(false);
 
   const { user } = useUserContext();
   const { data: currentUser } = useGetUserById(user.id || "");
@@ -27,10 +28,6 @@ const Home = () => {
         for (const friendId of currentUser?.friends || []) {
           const user = await getUserById(friendId);
           details.push(user);
-          // Check if the current user is friends with this user
-          if (user?.friends.includes(currentUser?.$id)) {
-            areFriends = true;
-          }
         }
         setFriendDetails(details);
       } catch (error) {
@@ -40,19 +37,49 @@ const Home = () => {
     fetchFriendDetails();
   }, [currentUser?.friends, currentUser?.$id]);
 
+  const handleSwitch = () => {
+    setIsChecked(!isChecked);
+  }
+
   return (
     <div className='flex flex-1'>
       <div className='home-container'>
         <div className='home-posts'>
-          <h2 className='h3-bold md:h2-bold text-left w-full'>Home Feed</h2>
+          <div className='w-full flex justify-between items-center'>
+            <h2 className='h3-bold md:h2-bold text-left w-full'>Home Feed</h2>
+            <div className='flex items-center gap-2'>
+              <p className='text-sm lg:text-base'>Friends</p>
+              <Switch
+                checked={isChecked}
+                onChange={handleSwitch}
+                className=''
+              />
+              <p className='whitespace-nowrap text-sm lg:text-base'>All Posts</p>
+            </div>
+          </div>
           {isPostLoading && !posts ? (
             <Loader />
           ) : (
             <ul className='flex flex-col flex-1 gap-9 w-full'>
               {posts?.documents.map((post) => {
-                return (
-                  <PostCard key={post.id} post={post} />
-                )
+                const isCurrentUserPost = post?.creator?.$id === currentUser?.$id;
+                const isFriendPost = currentUser?.friends?.includes(post?.creator?.$id);
+                if (!isChecked && (isCurrentUserPost || isFriendPost)) {
+                  // Render current user's posts and their friends' posts when switch is unchecked
+                  return (
+                    <li key={post?.$id}>
+                      <PostCard post={post} />
+                    </li>
+                  );
+                } else if (isChecked) {
+                  // Render all posts when switch is checked
+                  return (
+                    <li key={post?.$id}>
+                      <PostCard post={post} />
+                    </li>
+                  );
+                }
+                return null; // Do not render post if it doesn't meet the criteria
               })}
             </ul>
           )}
@@ -89,7 +116,7 @@ const Home = () => {
             <h2 className='text-center text-2xl tracking-wider font-bold pb-2'>Friend List</h2>
             <ul className='grid grid-cols-2 max-h-56 overflow-scroll custom-scrollbar overflow-x-hidden px-1'>
               {friendDetails.map((friend) => (
-                <li key={friend.id} className='flex flex-col gap-3 items-center hover:bg-dark-1 p-2 rounded-xl'>
+                <li key={friend?.$id} className='flex flex-col gap-3 items-center hover:bg-dark-1 p-2 rounded-xl'>
                   <ProfileModal friend={friend} />
                   <p className='text-lg font-bold'>{friend.name}</p>
                   <p className='text-light-3'>@{friend.username}</p>

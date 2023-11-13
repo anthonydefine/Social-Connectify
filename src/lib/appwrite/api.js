@@ -447,46 +447,43 @@ export async function removeFriend(userId, targetId) {
 }
 
 // ============================== Update Activity
-export async function updateUser(user) {
+export async function updateUser(updatedUserData) {
+  const { name, bio, userId, file } = updatedUserData;
   try {
-    const updatedUser = { // Prepare user data to update
-      name: user.name,
-      bio: user.bio,
-      imageUrl: user.imageUrl,
-      imageId: user.imageId,
-    };
-    if (user.file && user.file.length > 0) {
-      // Upload new file to appwrite storage
-      const uploadedFile = await uploadFile(user.file[0]);
-      
-      if (!uploadedFile) {
-        throw new Error('Error uploading file to storage');
-      }
-      // Get new file url
-      const fileUrl = getFilePreview(uploadedFile.$id);
-      
-      if (!fileUrl) {
+    let imageUrl;
+    let imageId;
+    if (file) {
+      // Upload file to appwrite storage
+      const uploadedFile = await uploadFile(file);
+      if (!uploadedFile) throw Error;
+      // Get file url
+      imageUrl = getFilePreview(uploadedFile.$id);
+      if (!imageUrl) {
         await deleteFile(uploadedFile.$id);
-        throw new Error('Error getting file URL');
+        throw Error;
       }
-      // Update user with new image data
-      updatedUser.imageUrl = fileUrl;
-      updatedUser.imageId = uploadedFile.$id;
+      imageId = uploadedFile.$id;
     }
-    // Update user document in the database
-    const response = await databases.updateDocument(
+    const updatedAccount = await databases.updateDocument(
       appwriteConfig.databaseId,
       appwriteConfig.userCollectionId,
-      user.userId,
-      updatedUser
+      userId,
+      {
+        name: name,
+        bio: bio,
+        ...(file && { imageUrl: imageUrl, imageId: imageId }), // Conditionally update image-related fields
+      }
     );
-    // Handle the response or return it to the caller
-    return response;
+    if (!updatedAccount && file) {
+      await deleteFile(imageId);
+      throw Error;
+    }
+    return updatedAccount;
   } catch (error) {
-    // Handle errors appropriately, such as logging or notifying the user
-    console.error('Error updating user:', error);
-    throw error; // Rethrow the error to propagate it to the caller
+    console.log(error);
   }
 }
+
+
 
 

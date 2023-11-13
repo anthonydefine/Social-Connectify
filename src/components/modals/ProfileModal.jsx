@@ -25,22 +25,25 @@ const ProfileModal = ({ post, friend }) => {
   useEffect(() => {
     const fetchFriendDetails = async () => {
       try {
-        const details = await Promise.all(
-          currentUser?.friends?.map(async (friendId) => {
-            const user = await getUserById(friendId);
-            const result = user?.friends.includes(currentUser?.$id);
-            setIsFriends(result);
-            return user; // Return user details for each friend
-          })
-        );
+        const details = [];
+        let areFriends = false;
+        for (const friendId of currentUser?.friends || []) {
+          const user = await getUserById(friendId);
+          details.push(user);
+          // Check if the current user is friends with this user
+          if (user?.friends.includes(currentUser?.$id)) {
+            areFriends = true;
+          }
+        }
+        setIsFriends(areFriends);
         setFriendDetails(details);
       } catch (error) {
         console.error('Error fetching friend details:', error);
       }
     };
-
     fetchFriendDetails();
   }, [currentUser?.friends, currentUser?.$id]);
+  
 
   const alreadyFriends = () => {
     messageApi.open({
@@ -149,7 +152,7 @@ const ProfileModal = ({ post, friend }) => {
           <div className='my-8 text-light-2'>
             <p className='text-2xl font-bold'>Bio</p>
             <p className='text-light-3'>
-              {currentUser.bio || 'User has no bio yet'}
+              {currentUser?.bio || 'User has no bio yet'}
             </p>
           </div>
           <div className='px-4'>

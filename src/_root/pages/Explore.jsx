@@ -52,7 +52,7 @@ const Explore = () => {
           <img src={searchIcon} width={24} height={24} alt='search' />
           <Input 
             type='text' 
-            placeholder='Search' 
+            placeholder='Search captions of posts' 
             className='explore-search text-slate-300'
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}

@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import profilePlaceholder from '../../../public/assets/icons/profile-placeholder.svg';
-import { DeleteOutlined, EditOutlined } from '@ant-design/icons';
+import { DeleteOutlined } from '@ant-design/icons';
 import { useUserContext } from '../../context/AuthContext';
 import PostStats from './PostStats';
 import { formatTimestamp } from '../../constants';
@@ -21,7 +21,6 @@ const PostCard = ({ post }) => {
     deletePost({ postId: post?.$id, imageId: post?.imageId })
   };
 
-  const editText = <span>Edit post</span>
   const deleteText = <span>Delete post</span>
 
   return (
@@ -49,14 +48,9 @@ const PostCard = ({ post }) => {
           </div>
         </div>
         {user.id === post?.creator.$id ? (
-          <span className='flex gap-3'>
-            <Tooltip placement='bottom' title={editText}>
-              <Button type='link' icon={<EditOutlined />}></Button>
-            </Tooltip>
-            <Tooltip placement='bottom' title={deleteText}>
-              <Button danger type='link' icon={<DeleteOutlined />} onClick={handleDeletePost}></Button>
-            </Tooltip>
-          </span>
+          <Tooltip placement='bottom' title={deleteText}>
+            <Button danger type='link' icon={<DeleteOutlined />} onClick={handleDeletePost}></Button>
+          </Tooltip>
         ) : (
           ''
         )}
