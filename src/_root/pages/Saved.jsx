@@ -16,6 +16,8 @@ const savePosts = currentUser?.save
 }))
 .reverse();
 
+console.log(savePosts)
+
   return (
     <div className="saved-container">
       <div className="flex gap-2 w-full max-w-5xl">
@@ -33,10 +35,10 @@ const savePosts = currentUser?.save
         <Loader />
       ) : (
         <ul className="w-full flex justify-center max-w-5xl gap-9">
-          {savePosts?.length === 0 ? (
+          {savePosts.length === 0 ? (
             <p className="text-light-4">No available posts</p>
           ) : (
-            <GridPostList posts={savePosts} showUser={false} />
+            <GridPostList posts={savePosts} showUser={false} showStats={false} />
           )}
         </ul>
       )}
